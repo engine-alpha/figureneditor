@@ -1,0 +1,61 @@
+#editor {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+}
+
+#tabs {
+    line-height: 32px;
+    height: 32px;
+    font-size: 0;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, .05);
+    border-bottom: 1px solid rgba(0, 0, 0, .05);
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.tab {
+    margin: -1px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #444;
+    padding: 0 8px;
+    border: 1px solid rgba(0, 0, 0, .1);
+    background: #eeeeee;
+    text-align: center;
+    vertical-align: middle;
+    display: inline-block;
+    width: 34px;
+    height: 34px;
+}
+
+.thumb {
+    width: 32px;
+    height: 32px;
+    display: inline-block;
+    background: no-repeat center;
+    background-size: contain;
+}
+
+.tab-current {
+    color: #222;
+    background: #ffffff;
+    z-index: 2;
+    position: relative;
+    border: 1px solid #e66b37;
+}
+
+#editorpane {
+    position: relative;
+    display: flex;
+    flex: 2;
+}
+
+#editorpane canvas {
+    margin: auto;
+}

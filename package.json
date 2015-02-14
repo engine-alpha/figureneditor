@@ -1,0 +1,20 @@
+{
+  "name": "Figureneditor",
+  "version": "1.0.0",
+  "description": "",
+  "main": "js/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "./env.sh watchify -t hbsfy js/index.js -o js/bundle.js --verbose",
+    "build": "./env.sh browserify -t hbsfy js/index.js | ./env.sh uglifyjs -m > js/bundle.js"
+  },
+  "author": "Niklas Keller",
+  "dependencies": {
+    "browserify": "^8.1.3",
+    "filesaver.js": "^0.1.1",
+    "handlebars": "^3.0.0",
+    "hbsfy": "^2.2.1",
+    "uglify-js": "^2.4.16",
+    "watchify": "^2.3.0"
+  }
+}

@@ -1,0 +1,20 @@
+.flex {
+    display: flex;
+    justify-content: space-between;
+}
+
+.flex-left {
+    align-self: flex-start;
+}
+
+.flex-right {
+    align-self: flex-end;
+}
+
+.flex-container {
+    display: flex;
+}
+
+.flex-container {
+    margin: auto;
+}
