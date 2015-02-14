@@ -69,6 +69,8 @@ module.exports = function () {
     };
 
     var load = function (name, data) {
+        reset();
+
         document.getElementById("filename").textContent = name;
         main.innerHTML = template.main();
         canvas = document.getElementById("editorpane").querySelector("canvas");
@@ -148,9 +150,16 @@ module.exports = function () {
         var render = function () {
             if (currentFrameStart < 1 * new Date - frameTime) {
                 currentFrame = (currentFrame + 1) % animation.length;
-                animation[currentFrame].render(previewCanvas, 2);
+
+                if (typeof animation[currentFrame] !== "undefined") {
+                    animation[currentFrame].render(previewCanvas, 2);
+                } else {
+                    return;
+                }
+
                 currentFrameStart = 1 * new Date;
             }
+
 
             window.requestAnimationFrame(render);
         };
@@ -161,11 +170,43 @@ module.exports = function () {
     };
 
     var save = function () {
-        var blob = new Blob(["Hallo Welt!"], {
+        var lines = [];
+
+        lines.push(
+            "_fig_",
+            "an:" + animation.length,
+            "f:" + 2, // TODO: right factor
+            "x:" + size.x,
+            "y:" + size.y,
+            "p:" + 0,
+            "q:" + 0
+        );
+
+        animation.forEach(function (pixel) {
+            lines.push("-");
+
+            var data = pixel.getData();
+
+            for (var x in data) {
+                if (!data.hasOwnProperty(x)) {
+                    continue;
+                }
+
+                for (var y in data[x]) {
+                    if (!data[x].hasOwnProperty(y)) {
+                        continue;
+                    }
+
+                    lines.push("Z" + x + "-" + y + ":" + analyseColor(data[x][y]));
+                }
+            }
+        });
+
+        var blob = new Blob([lines.join("\n")], {
             type: "text/plain; charset=utf-8"
         });
 
-        saveAs(blob, "figur.eaf");
+        saveAs(blob, document.getElementById("filename").textContent);
     };
 
     var close = function () {
@@ -173,7 +214,7 @@ module.exports = function () {
             return;
         }
 
-        main.innerHTML = require("../html/empty.handlebars")();
+        reset();
     };
 
     var addPixelField = function (pixel, i) {
@@ -224,16 +265,61 @@ module.exports = function () {
         return new Color(rgb[0], rgb[1], rgb[2]);
     };
 
+    var analyseColor = function (c) {
+        if (c === null) {
+            return "%%;";
+        }
+
+        switch (c) {
+            case Colors.black:
+                return "schwarz;";
+            case Colors.gray:
+                return "grau;";
+            case Colors.green:
+                return "gruen;";
+            case Colors.yellow:
+                return "gelb;";
+            case Colors.blue:
+                return "blau;";
+            case Colors.white:
+                return "weiss;";
+            case Colors.orange:
+                return "orange;";
+            case Colors.red:
+                return "rot;";
+            case Colors.pink:
+                return "pink;";
+            case Colors.magenta:
+                return "magenta;";
+            case Colors.cyan:
+                return "cyan;";
+            case Colors.darkGray:
+                return "dunkelgrau;";
+            case Colors.lightGray:
+                return "hellgrau;";
+            default:
+                return "&" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ";";
+        }
+    };
+
     var repaint = function () {
         var pixel = animation[current];
         pixel.render(canvas, 15);
     };
 
     var reset = function () {
-        loaded = false;
-        saved = true;
         document.getElementById("filename").innerHTML = "&nbsp;";
         main.innerHTML = template.empty();
+        loaded = false;
+        saved = true;
+        current = 0;
+        animation = [];
+        panels = {};
+        size = {};
+        canvas = null;
+        previewCanvas = null;
+        currentFrame = 0;
+        currentFrameStart = 0;
     };
 
     return {

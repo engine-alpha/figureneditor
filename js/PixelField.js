@@ -9,7 +9,7 @@ module.exports = function (width, height) {
         var data = {};
 
         for (var y = 0; y < height; y++) {
-            data[y] = new Color(0, 0, 0, 0);
+            data[y] = null;
         }
 
         colors[x] = data;
