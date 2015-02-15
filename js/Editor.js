@@ -79,7 +79,31 @@ module.exports = function () {
     });
 
     var create = function () {
+        var width, height;
 
+        while (isNaN(width = prompt("Breite der Figur", "20"))) {
+            alert("Das ist keine gültige Zahl");
+        }
+
+        while (isNaN(height = prompt("Breite der Figur", "20"))) {
+            alert("Das ist keine gültige Zahl");
+        }
+
+        width = parseInt(Math.round(width));
+        height = parseInt(Math.round(height));
+
+        // fake figure so we don't have to duplicate any logic
+        var fakeLines = [
+            "_fig_",
+            "an:0",
+            "f:1",
+            "x:" + width,
+            "y:" + height,
+            "p:0",
+            "q:0"
+        ];
+
+        load("unbekannt.eaf", fakeLines.join("\n"));
     };
 
     var load = function (name, data) {
@@ -131,38 +155,46 @@ module.exports = function () {
 
         // skip position
         currentLine += 2;
-        var result = [];
 
-        for (var i = 0; i < animationLength; i++) {
-            line = lines[++currentLine];
+        var pixel;
 
-            if (line !== "-") {
-                alert("Datei beschädigt!");
-                reset();
-                return;
-            }
+        if (animationLength === 0) {
+            pixel = new PixelField(x, y, factor);
+            animation = [pixel];
+        } else {
+            var result = [];
 
-            var pixel = new PixelField(x, y, factor);
+            for (var i = 0; i < animationLength; i++) {
+                line = lines[++currentLine];
 
-            for (var j = 0; j < x; j++) {
-                for (var k = 0; k < y; k++) {
-                    line = lines[++currentLine];
-
-                    var color = parseColor(line.split(":")[1]);
-                    pixel.setColor(j, k, color);
+                if (line !== "-") {
+                    alert("Datei beschädigt!");
+                    reset();
+                    return;
                 }
+
+                pixel = new PixelField(x, y, factor);
+
+                for (var j = 0; j < x; j++) {
+                    for (var k = 0; k < y; k++) {
+                        line = lines[++currentLine];
+
+                        var color = parseColor(line.split(":")[1]);
+                        pixel.setColor(j, k, color);
+                    }
+                }
+
+                result.push(pixel);
             }
 
-            result.push(pixel);
+            animation = result;
         }
 
-        result.forEach(function (pixel) {
+        animation.forEach(function (pixel) {
             addPixelField(pixel);
         });
 
         panels.tabs.querySelector(".tab").classList.add("tab-current");
-
-        animation = result;
         current = 0;
 
         var render = function () {
