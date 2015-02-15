@@ -97,6 +97,7 @@ module.exports = function () {
 
             animation.push(pixel);
             addPixelField(pixel, true);
+            saved = false;
             repaint();
         });
 
@@ -134,8 +135,6 @@ module.exports = function () {
 
         for (var i = 0; i < animationLength; i++) {
             line = lines[++currentLine];
-
-            console.log(line, line.length);
 
             if (line !== "-") {
                 alert("Datei beschädigt!");
