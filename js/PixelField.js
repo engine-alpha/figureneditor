@@ -25,7 +25,11 @@ module.exports = function (width, height) {
         },
 
         setColor: function (x, y, color) {
-            colors[x][y] = color;
+            if (x in colors && y in colors[x]) {
+                colors[x][y] = color;
+            } else {
+                console.info(x + ", " + y + " " + colors);
+            }
         },
 
         getData: function () {
@@ -37,20 +41,28 @@ module.exports = function (width, height) {
             exports.render(document.createElement("canvas"), Math.ceil(32 / Math.max(width, height)));
         },
 
-        render: function (canvas, size) {
-            canvas.width = width * size;
-            canvas.height = height * size;
+        render: function (canvas, drawSize, drawGrid) {
+            drawGrid = drawGrid || false;
+            var size = {
+                x: width,
+                y: height
+            };
+
+            canvas.width = width * drawSize;
+            canvas.height = height * drawSize;
 
             var ctx = canvas.getContext("2d");
 
             ctx.save();
 
-            for (var x in colors) {
+            var x, y;
+
+            for (x in colors) {
                 if (!colors.hasOwnProperty(x)) {
                     continue;
                 }
 
-                for (var y in colors[x]) {
+                for (y in colors[x]) {
                     if (!colors[x].hasOwnProperty(y)) {
                         continue;
                     }
@@ -59,8 +71,30 @@ module.exports = function (width, height) {
 
                     if (color.getAlpha() > 0) {
                         ctx.fillStyle = color.toCSS();
-                        ctx.fillRect(x * size, y * size, size, size);
+                        ctx.fillRect(x * drawSize, y * drawSize, drawSize, drawSize);
                     }
+                }
+            }
+
+            if (drawGrid) {
+                ctx.strokeStyle = "rgba(0,0,0,.2)";
+
+                for (x = 0; x < size.x + 1; x++) {
+                    ctx.beginPath();
+                    ctx.moveTo(x * drawSize - .5, -.5);
+                    ctx.lineTo(x * drawSize - .5, size.y * drawSize - .5);
+                    ctx.moveTo(x * drawSize + .5, +.5);
+                    ctx.lineTo(x * drawSize + .5, size.y * drawSize + .5);
+                    ctx.stroke();
+                }
+
+                for (y = 0; y < size.y + 1; y++) {
+                    ctx.beginPath();
+                    ctx.moveTo(-.5, y * drawSize - .5);
+                    ctx.lineTo(size.x * drawSize - .5, y * drawSize - .5);
+                    ctx.moveTo(+.5, y * drawSize + .5);
+                    ctx.lineTo(size.x * drawSize + .5, y * drawSize + .5);
+                    ctx.stroke();
                 }
             }
 

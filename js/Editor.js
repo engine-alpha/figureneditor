@@ -1,6 +1,7 @@
 "use strict";
 
-var Brush = require("./Brush.js");
+var Brush = require("./tools/Brush.js");
+var Eraser = require("./tools/Eraser.js");
 var Color = require("./Color.js");
 var Colors = require("./Colors.js");
 var PixelField = require("./PixelField.js");
@@ -15,13 +16,16 @@ var template = {
 
 module.exports = function () {
     var loaded = false, saved = true, current = 0, animation = [], panels = {}, size = {}, canvas, previewCanvas,
-        currentFrame = 0, currentFrameStart = 0, frameTime = 75;
+        currentFrame = 0, currentFrameStart = 0, frameTime = 75, translate = {x: 0, y: 0}, scale = 100, currentTool;
 
     var exports = {};
 
     var tools = {
-        brush: new Brush(exports)
+        brush: new Brush(exports),
+        eraser: new Eraser(exports)
     };
+
+    currentTool = tools.brush;
 
     var main = document.getElementById("main");
     main.innerHTML = template.empty();
@@ -33,8 +37,7 @@ module.exports = function () {
         close: document.getElementById("action.close")
     };
 
-    var input = document.getElementById("fileinput");
-    input.addEventListener("change", function (e) {
+    var onFileInputChange = function (e) {
         var files = e.target.files;
         var onload = function (file) {
             if (close()) {
@@ -49,7 +52,15 @@ module.exports = function () {
             reader.onload = onload;
             reader.readAsText(files[0]);
         }
-    });
+
+        var node = input.cloneNode(true);
+        input.parentNode.replaceChild(node, input);
+        input = node;
+        input.addEventListener("change", onFileInputChange);
+    };
+
+    var input = document.getElementById("fileinput");
+    input.addEventListener("change", onFileInputChange);
 
     actions.new.addEventListener("click", function () {
         if (close()) {
@@ -74,6 +85,7 @@ module.exports = function () {
     var load = function (name, data) {
         reset();
 
+        loaded = true;
         document.getElementById("filename").textContent = name;
         main.innerHTML = template.main();
         canvas = document.getElementById("editorpane").querySelector("canvas");
@@ -84,7 +96,8 @@ module.exports = function () {
             var pixel = new PixelField(size.x, size.y);
 
             animation.push(pixel);
-            addPixelField(pixel, animation.length - 1);
+            addPixelField(pixel, true);
+            repaint();
         });
 
         data = data.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
@@ -144,8 +157,8 @@ module.exports = function () {
             result.push(pixel);
         }
 
-        result.forEach(function (pixel, i) {
-            addPixelField(pixel, i);
+        result.forEach(function (pixel) {
+            addPixelField(pixel);
         });
 
         panels.tabs.querySelector(".tab").classList.add("tab-current");
@@ -173,19 +186,128 @@ module.exports = function () {
         window.requestAnimationFrame(render);
 
         canvas.addEventListener("click", function (e) {
-            var x = Math.floor(e.offsetX / 15);
-            var y = Math.floor(e.offsetY / 15);
+            var x = 0, y = 0;
 
-            tools.brush.onDrag(x, y, animation[current]);
+            if (e.pageX || e.pageY) {
+                x = e.pageX;
+                y = e.pageY;
+            } else if (e.clientX || e.clientY) {
+                x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+                y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+            }
+
+            var offX = 0, offY = 0;
+            var obj = this;
+
+            do {
+                offX += obj.offsetLeft;
+                offY += obj.offsetTop;
+            } while (obj = obj.offsetParent);
+
+            x -= offX + translate.x - 1;
+            y -= offY + translate.y - 1;
+
+            x = parseInt(Math.floor(x / 15 / scale * 100));
+            y = parseInt(Math.floor(y / 15 / scale * 100));
+
+            if (e.buttons === 1 || e.which === 1) {
+                currentTool.onDrag(x, y, animation[current]);
+                saved = false;
+            }
         });
 
         canvas.addEventListener("mousemove", function (e) {
-            var x = Math.floor(e.offsetX / 15);
-            var y = Math.floor(e.offsetY / 15);
+            var x = 0, y = 0;
 
-            if (e.which === 1) {
-                tools.brush.onDrag(x, y, animation[current]);
+            if (e.pageX || e.pageY) {
+                x = e.pageX;
+                y = e.pageY;
+            } else if (e.clientX || e.clientY) {
+                x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+                y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
             }
+
+            var offX = 0, offY = 0;
+            var obj = this;
+
+            do {
+                offX += obj.offsetLeft;
+                offY += obj.offsetTop;
+            } while (obj = obj.offsetParent);
+
+            x -= offX + translate.x - 1;
+            y -= offY + translate.y - 1;
+
+            x = parseInt(Math.floor(x / 15 / scale * 100));
+            y = parseInt(Math.floor(y / 15 / scale * 100));
+
+            var which = "buttons" in e ? e.buttons : e.which;
+
+            if (which === 1) { // left button
+                currentTool.onDrag(x, y, animation[current]);
+                saved = false;
+            }
+        });
+
+        document.getElementById("editorpane").addEventListener("mousemove", function (e) {
+            if (e.which === 2 || e.buttons === 3 || e.buttons === 4 || 32 in window.keysDown) { // mouse wheel or both buttons
+                var movement = {
+                    x: e.movementX,
+                    y: e.movementY
+                };
+
+                if (e.mozMovementX || e.mozMovementY) {
+                    movement = {
+                        x: e.mozMovementX,
+                        y: e.mozMovementY
+                    };
+                }
+
+                translate.x += movement.x;
+                translate.y += movement.y;
+                canvas.style.webkitTransform = "translate(" + translate.x + "px," + translate.y + "px)";
+                canvas.style.mozTransform = "translate(" + translate.x + "px," + translate.y + "px)";
+                canvas.style.transform = "translate(" + translate.x + "px," + translate.y + "px)";
+            }
+        });
+
+        var onMouseWheel = function (e) {
+            console.log(e);
+
+            if (window.ctrlDown) {
+                e.preventDefault();
+
+                var amount = "detail" in e && e.detail !== 0 ? -40 * e.detail : e.wheelDelta;
+
+                scale += amount / 10;
+
+                translate.x += size.x * amount / 1000;
+                translate.y += size.y * amount / 1000;
+
+                canvas.style.webkitTransform = "translate(" + translate.x + "px," + translate.y + "px)";
+                canvas.style.mozTransform = "translate(" + translate.x + "px," + translate.y + "px)";
+                canvas.style.transform = "translate(" + translate.x + "px," + translate.y + "px)";
+
+                repaint();
+            }
+        };
+
+        // IE9, Chrome, Safari, Opera
+        document.addEventListener("mousewheel", onMouseWheel, false);
+        // Firefox
+        document.addEventListener("DOMMouseScroll", onMouseWheel, false);
+
+        document.querySelectorAll(".tool").forEach(function (node) {
+            node.addEventListener("click", function () {
+                var n = document.querySelector(".tool-current");
+
+                if (n) {
+                    n.classList.remove("tool-current");
+                }
+
+                node.classList.add("tool-current");
+                currentTool = tools[this.getAttribute("data-tool")];
+            });
         });
 
         repaint();
@@ -229,6 +351,7 @@ module.exports = function () {
         });
 
         saveAs(blob, document.getElementById("filename").textContent);
+        saved = true;
     };
 
     var close = function () {
@@ -239,10 +362,16 @@ module.exports = function () {
         reset();
     };
 
-    var addPixelField = function (pixel, i) {
+    var addPixelField = function (pixel, focus) {
         var node = Util.html2node(template.tab());
         node.addEventListener("click", function () {
-            current = i;
+            current = 0;
+
+            panels.tabs.children.forEach(function (o, i) {
+                if (o === node) {
+                    current = i;
+                }
+            });
 
             var n = document.querySelector(".tab-current");
 
@@ -254,8 +383,61 @@ module.exports = function () {
             repaint();
         });
 
+        node.querySelectorAll(".tab-menu-delete").forEach(function (o) {
+            o.addEventListener("click", function (e) {
+                var curr = 0;
+
+                panels.tabs.children.forEach(function (o, i) {
+                    if (o === node) {
+                        curr = i;
+                    }
+                });
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                animation.splice(curr, 1);
+                node.parentNode.removeChild(node);
+
+                if (current === animation.length) {
+                    current--;
+                }
+
+                if (current === -1) {
+                    var pixel = new PixelField(size.x, size.y);
+                    animation.push(pixel);
+                    addPixelField(pixel);
+                    current = 0;
+                }
+
+                panels.tabs.children[current].classList.add("tab-current");
+                repaint();
+            });
+        });
+
         pixel.setThumbNode(node.querySelector(".thumb"));
         panels.tabs.insertBefore(node, actions.insert);
+
+        var curr = 0;
+
+        panels.tabs.children.forEach(function (o, i) {
+            if (o === node) {
+                curr = i;
+            }
+        });
+
+        if (focus) {
+            current = curr;
+
+            var n = document.querySelector(".tab-current");
+
+            if (n) {
+                n.classList.remove("tab-current");
+            }
+
+            node.classList.add("tab-current");
+            repaint();
+        }
     };
 
     var parseColor = function (input) {
@@ -325,8 +507,10 @@ module.exports = function () {
     };
 
     var repaint = function () {
-        var pixel = animation[current];
-        pixel.render(canvas, 15);
+        requestAnimationFrame(function () {
+            var pixel = animation[current];
+            pixel.render(canvas, 15 * scale / 100, true);
+        });
     };
 
     var reset = function () {

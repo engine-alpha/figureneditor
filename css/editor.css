@@ -5,10 +5,9 @@
 }
 
 #tabs {
-    line-height: 32px;
-    height: 32px;
+    line-height: 34px;
+    height: 34px;
     font-size: 0;
-    overflow: hidden;
     background-color: rgba(0, 0, 0, .05);
     border-bottom: 1px solid rgba(0, 0, 0, .05);
     -webkit-touch-callout: none;
@@ -32,6 +31,8 @@
     display: inline-block;
     width: 34px;
     height: 34px;
+    z-index: 2;
+    position: relative;
 }
 
 .thumb {
@@ -43,15 +44,54 @@
 }
 
 .tab-current {
+    z-index: 3;
     color: #222;
     background: #ffffff;
-    z-index: 2;
-    position: relative;
     border: 1px solid #e66b37;
+}
+
+.tab-menu {
+    display: none;
+}
+
+.tab:hover .tab-menu {
+    display: block;
+    list-style: none;
+    position: absolute;
+    top: 35px;
+    left: -1px;
+    background: #eeeeee;
+    border: 1px solid rgba(0, 0, 0, .1);
+    border-top: 0;
+    margin: 0;
+    padding: 0;
+    width: 180px;
+}
+
+.tab-menu li {
+    display: block;
+    padding: 2px 8px;
+    margin: 0;
+    font-weight: bold;
+    text-align: left;
+}
+
+.tab-menu li .fa {
+    margin-right: 8px;
+}
+
+.tab-menu li:hover {
+    background: #fff;
+    cursor: pointer;
+}
+
+.tab-current + .tab:hover .tab-menu {
+    left: 0;
 }
 
 #editorpane {
     position: relative;
+    overflow: hidden;
     display: flex;
     flex: 2;
 }
@@ -68,4 +108,5 @@ canvas {
     -ms-user-select: none;
     user-select: none;
     cursor: default;
+    flex-shrink: 0;
 }
