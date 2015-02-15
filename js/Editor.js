@@ -26,14 +26,30 @@ module.exports = function () {
         close: document.getElementById("action.close")
     };
 
-    actions.new.addEventListener("click", function () {
-        close();
-        create();
+    var input = document.getElementById("fileinput");
+    input.addEventListener("change", function (e) {
+        var files = e.target.files;
+        var onload = function (file) {
+            if (close()) {
+                return;
+            }
+
+            load(files[0].name, file.target.result.toString());
+        };
+
+        if (files.length === 1) {
+            var reader = new FileReader();
+            reader.onload = onload;
+            reader.readAsText(files[0]);
+        }
     });
 
-    actions.open.addEventListener("click", function () {
-        close();
-        open();
+    actions.new.addEventListener("click", function () {
+        if (close()) {
+            return;
+        }
+
+        create();
     });
 
     actions.save.addEventListener("click", function () {
@@ -46,26 +62,6 @@ module.exports = function () {
 
     var create = function () {
 
-    };
-
-    var open = function () {
-        var input = document.createElement("input");
-        input.setAttribute("type", "file");
-
-        input.addEventListener("change", function (e) {
-            var files = e.target.files;
-            var onload = function (file) {
-                load(files[0].name, file.target.result.toString());
-            };
-
-            if (files.length === 1) {
-                var reader = new FileReader();
-                reader.onload = onload;
-                reader.readAsText(files[0]);
-            }
-        });
-
-        input.dispatchEvent(new Event("click"));
     };
 
     var load = function (name, data) {
@@ -211,7 +207,7 @@ module.exports = function () {
 
     var close = function () {
         if (loaded && !saved && !confirm("Du hast ungespeicherte Änderungen. Willst du wirklich fortfahren?")) {
-            return;
+            return true;
         }
 
         reset();
@@ -323,7 +319,6 @@ module.exports = function () {
     };
 
     return {
-        open: open,
         save: save
     };
 };

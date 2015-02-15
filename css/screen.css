@@ -32,6 +32,8 @@ body {
     text-align: center;
     cursor: pointer;
     color: #111;
+    position: relative;
+    vertical-align: middle;
 }
 
 .nav-button:hover {
