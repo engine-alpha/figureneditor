@@ -1,5 +1,6 @@
 "use strict";
 
+var Brush = require("./Brush.js");
 var Color = require("./Color.js");
 var Colors = require("./Colors.js");
 var PixelField = require("./PixelField.js");
@@ -15,6 +16,12 @@ var template = {
 module.exports = function () {
     var loaded = false, saved = true, current = 0, animation = [], panels = {}, size = {}, canvas, previewCanvas,
         currentFrame = 0, currentFrameStart = 0, frameTime = 75;
+
+    var exports = {};
+
+    var tools = {
+        brush: new Brush(exports)
+    };
 
     var main = document.getElementById("main");
     main.innerHTML = template.empty();
@@ -80,6 +87,7 @@ module.exports = function () {
             addPixelField(pixel, animation.length - 1);
         });
 
+        data = data.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
         var lines = data.split("\n");
         var line = lines[0];
         var currentLine = 0;
@@ -113,6 +121,8 @@ module.exports = function () {
 
         for (var i = 0; i < animationLength; i++) {
             line = lines[++currentLine];
+
+            console.log(line, line.length);
 
             if (line !== "-") {
                 alert("Datei beschädigt!");
@@ -161,6 +171,22 @@ module.exports = function () {
         };
 
         window.requestAnimationFrame(render);
+
+        canvas.addEventListener("click", function (e) {
+            var x = Math.floor(e.offsetX / 15);
+            var y = Math.floor(e.offsetY / 15);
+
+            tools.brush.onDrag(x, y, animation[current]);
+        });
+
+        canvas.addEventListener("mousemove", function (e) {
+            var x = Math.floor(e.offsetX / 15);
+            var y = Math.floor(e.offsetY / 15);
+
+            if (e.which === 1) {
+                tools.brush.onDrag(x, y, animation[current]);
+            }
+        });
 
         repaint();
     };
@@ -318,7 +344,15 @@ module.exports = function () {
         currentFrameStart = 0;
     };
 
-    return {
-        save: save
+    exports.getCurrentColor = function () {
+        var color = document.getElementById("colorpicker").querySelector("input").value;
+        color = Util.hexToRgb(color);
+        return color ? new Color(color.r, color.g, color.b) : null;
     };
+
+    exports.repaint = function () {
+        repaint();
+    };
+
+    return exports;
 };
