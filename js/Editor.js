@@ -385,6 +385,7 @@ module.exports = function () {
 
         node.querySelectorAll(".tab-menu-delete").forEach(function (o) {
             o.addEventListener("click", function (e) {
+                saved = false;
                 var curr = 0;
 
                 panels.tabs.children.forEach(function (o, i) {
