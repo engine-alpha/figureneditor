@@ -28,7 +28,6 @@ module.exports = function () {
     currentTool = tools.brush;
 
     var main = document.getElementById("main");
-    main.innerHTML = template.empty();
 
     var actions = {
         new: document.getElementById("action.new"),
@@ -110,6 +109,7 @@ module.exports = function () {
         reset();
 
         loaded = true;
+        document.body.classList.remove("body-intro");
         document.getElementById("filename").textContent = name;
         main.innerHTML = template.main();
         canvas = document.getElementById("editorpane").querySelector("canvas");
@@ -242,7 +242,7 @@ module.exports = function () {
             y = parseInt(Math.floor(y / 15 / scale * 100));
 
             if (e.buttons === 1 || e.which === 1) {
-                currentTool.onDrag(x, y, animation[current]);
+                currentTool.onClick(x, y, animation[current]);
                 saved = false;
             }
         });
@@ -546,6 +546,7 @@ module.exports = function () {
     };
 
     var reset = function () {
+        document.body.classList.add("body-intro");
         document.getElementById("filename").innerHTML = "&nbsp;";
         main.innerHTML = template.empty();
         loaded = false;
@@ -569,6 +570,8 @@ module.exports = function () {
     exports.repaint = function () {
         repaint();
     };
+
+    reset();
 
     return exports;
 };

@@ -11,6 +11,32 @@ body {
     font-family: "Lato", sans-serif;
 }
 
+.body-intro {
+    background: url(../img/noisy_grid.png) center;
+}
+
+.text-center {
+    text-align: center;
+}
+
+h1 {
+    margin: 0;
+    padding: 0;
+}
+
+.subtitle {
+    display: block;
+    font-size: 16px;
+    color: #555555;
+}
+
+.intro {
+    display: block;
+    margin-top: 40px;
+    font-size: 16px;
+    color: #555555;
+}
+
 #nav {
     line-height: 50px;
     background: #e66b37;
@@ -66,11 +92,12 @@ body {
 
 #footer {
     height: 26px;
-    border-top: 1px solid rgba(0, 0, 0, .1);
-    background: rgba(0, 0, 0, .1);
+    border-top: 1px solid rgba(0, 0, 0, .05);
+    background: rgba(0, 0, 0, .05);
     color: #555;
     font-weight: bold;
     text-align: right;
     line-height: 26px;
     padding: 0 10px;
+    font-size: 12px;
 }
