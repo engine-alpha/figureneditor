@@ -22,6 +22,15 @@ module.exports = function (red, green, blue, alpha) {
 
         toCSS: function () {
             return "rgba(" + red + ", " + green + ", " + blue + ", " + (alpha / 255) + ")";
+        },
+
+        serialize: function () {
+            return {
+                r: red,
+                g: green,
+                b: blue,
+                a: alpha
+            };
         }
     }
 };

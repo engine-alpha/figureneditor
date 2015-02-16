@@ -411,6 +411,21 @@ module.exports = function () {
             });
         });
 
+        document.addEventListener("copy", function (e) {
+            var pixel = animation[current];
+
+            if (pixel.hasSelection()) {
+                e.clipboardData.setData("application/json", pixel.exportSelection());
+            }
+
+            e.preventDefault();
+        });
+
+        document.addEventListener("paste", function (e) {
+            animation[current].importSelection(e.clipboardData.getData("application/json"));
+            repaint();
+        });
+
         repaint();
     };
 

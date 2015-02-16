@@ -69,7 +69,7 @@ module.exports = function (width, height) {
 
                     var color = colors[x][y] || new Color(0, 0, 0, 0);
 
-                    if (color.getAlpha() > 0) {
+                    if (color.getAlpha() === 255) {
                         ctx.fillStyle = color.toCSS();
                         ctx.fillRect(x * drawSize, y * drawSize, drawSize, drawSize);
                     }
@@ -98,7 +98,7 @@ module.exports = function (width, height) {
                 }
             }
 
-            if (selectionSize && selectionPosition) {
+            if (drawGrid && selectionSize && selectionPosition) {
                 var dx = selectionPosition.x + (selectionSize.x < 0 ? 1 : 0);
                 var dy = selectionPosition.y + (selectionSize.y < 0 ? 1 : 0);
                 var dw = selectionSize.x + (selectionSize.x < 0 ? -1 : 1);
@@ -132,6 +132,61 @@ module.exports = function (width, height) {
 
         setSelectionSize: function (size) {
             selectionSize = size;
+        },
+
+        hasSelection: function () {
+            return selectionPosition && selectionSize;
+        },
+
+        exportSelection: function () {
+            var result = {};
+            var x, y, c;
+
+            for (x in colors) {
+                if (!colors.hasOwnProperty(x) || x - selectionPosition.x < 0 || x - selectionPosition.x > selectionSize.x) {
+                    continue;
+                }
+
+                result[x - selectionPosition.x] = {};
+
+                for (y in colors[x]) {
+                    if (!colors[x].hasOwnProperty(y) || y - selectionPosition.y < 0 || y - selectionPosition.y > selectionSize.y) {
+                        continue;
+                    }
+
+                    c = colors[x][y] ? colors[x][y].serialize() : null;
+                    result[x - selectionPosition.x][y - selectionPosition.y] = c;
+                }
+            }
+
+            return JSON.stringify(result);
+        },
+
+        importSelection: function (data) {
+            try {
+                selectionPosition = selectionPosition || {x: 0, y: 0};
+
+                data = JSON.parse(data);
+
+                for (var x in data) {
+                    if (!data.hasOwnProperty(x)) {
+                        continue;
+                    }
+
+                    for (var y in data[x]) {
+                        if (!data[x].hasOwnProperty(y)) {
+                            continue;
+                        }
+
+                        if (data[x][y]) {
+                            var c = new Color(data[x][y].r, data[x][y].g, data[x][y].b, data[x][y].a);
+                            this.setColor(selectionPosition.x + parseInt(x), selectionPosition.y + parseInt(y), c);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.log(e);
+            }
         }
     };
 
