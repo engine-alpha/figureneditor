@@ -11,6 +11,10 @@ body {
     font-family: "Lato", sans-serif;
 }
 
+.nodisplay {
+    display: none !important;
+}
+
 .body-intro {
     background: url(../img/noisy_grid.png) center;
 }

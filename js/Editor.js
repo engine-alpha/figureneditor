@@ -109,6 +109,7 @@ module.exports = function () {
         reset();
 
         loaded = true;
+        actions.save.classList.remove("nodisplay");
         document.body.classList.remove("body-intro");
         document.getElementById("filename").textContent = name;
         main.innerHTML = template.main();
@@ -548,6 +549,7 @@ module.exports = function () {
     var reset = function () {
         document.body.classList.add("body-intro");
         document.getElementById("filename").innerHTML = "&nbsp;";
+        actions.save.classList.add("nodisplay");
         main.innerHTML = template.empty();
         loaded = false;
         saved = true;
