@@ -3,7 +3,7 @@
 var Color = require("./Color.js");
 
 module.exports = function (width, height) {
-    var colors = {}, thumbNode;
+    var colors = {}, thumbNode, selectionPosition = null, selectionSize = null;
 
     for (var x = 0; x < width; x++) {
         var data = {};
@@ -98,9 +98,40 @@ module.exports = function (width, height) {
                 }
             }
 
+            if (selectionSize && selectionPosition) {
+                var dx = selectionPosition.x + (selectionSize.x < 0 ? 1 : 0);
+                var dy = selectionPosition.y + (selectionSize.y < 0 ? 1 : 0);
+                var dw = selectionSize.x + (selectionSize.x < 0 ? -1 : 1);
+                var dh = selectionSize.y + (selectionSize.y < 0 ? -1 : 1);
+
+                ctx.fillStyle = "rgba(0,100,200,.5)";
+                ctx.fillRect(
+                    dx * drawSize,
+                    dy * drawSize,
+                    dw * drawSize,
+                    dh * drawSize
+                );
+
+                ctx.strokeStyle = "rgba(0,100,200,.2)";
+                ctx.strokeRect(
+                    dx * drawSize,
+                    dy * drawSize,
+                    dw * drawSize,
+                    dh * drawSize
+                );
+            }
+
             ctx.restore();
 
             thumbNode.style.backgroundImage = "url(" + canvas.toDataURL("image/png") + ")";
+        },
+
+        setSelectionPosition: function (position) {
+            selectionPosition = position;
+        },
+
+        setSelectionSize: function (size) {
+            selectionSize = size;
         }
     };
 

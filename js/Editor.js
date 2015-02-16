@@ -2,6 +2,7 @@
 
 var Brush = require("./tools/Brush.js");
 var Eraser = require("./tools/Eraser.js");
+var Select = require("./tools/Select.js");
 var Color = require("./Color.js");
 var Colors = require("./Colors.js");
 var PixelField = require("./PixelField.js");
@@ -22,7 +23,8 @@ module.exports = function () {
 
     var tools = {
         brush: new Brush(exports),
-        eraser: new Eraser(exports)
+        eraser: new Eraser(exports),
+        select: new Select(exports)
     };
 
     currentTool = tools.brush;
@@ -278,6 +280,72 @@ module.exports = function () {
 
             if (which === 1) { // left button
                 currentTool.onDrag(x, y, animation[current]);
+                saved = false;
+            }
+        });
+
+        canvas.addEventListener("mousedown", function (e) {
+            var x = 0, y = 0;
+
+            if (e.pageX || e.pageY) {
+                x = e.pageX;
+                y = e.pageY;
+            } else if (e.clientX || e.clientY) {
+                x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+                y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+            }
+
+            var offX = 0, offY = 0;
+            var obj = this;
+
+            do {
+                offX += obj.offsetLeft;
+                offY += obj.offsetTop;
+            } while (obj = obj.offsetParent);
+
+            x -= offX + translate.x - 1;
+            y -= offY + translate.y - 1;
+
+            x = parseInt(Math.floor(x / 15 / scale * 100));
+            y = parseInt(Math.floor(y / 15 / scale * 100));
+
+            var which = "buttons" in e ? e.buttons : e.which;
+
+            if (which === 1) { // left button
+                currentTool.onMouseDown(x, y, animation[current]);
+                saved = false;
+            }
+        });
+
+        canvas.addEventListener("mouseup", function (e) {
+            var x = 0, y = 0;
+
+            if (e.pageX || e.pageY) {
+                x = e.pageX;
+                y = e.pageY;
+            } else if (e.clientX || e.clientY) {
+                x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+                y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+            }
+
+            var offX = 0, offY = 0;
+            var obj = this;
+
+            do {
+                offX += obj.offsetLeft;
+                offY += obj.offsetTop;
+            } while (obj = obj.offsetParent);
+
+            x -= offX + translate.x - 1;
+            y -= offY + translate.y - 1;
+
+            x = parseInt(Math.floor(x / 15 / scale * 100));
+            y = parseInt(Math.floor(y / 15 / scale * 100));
+
+            var which = "buttons" in e ? e.buttons : e.which;
+
+            if (which === 1) { // left button
+                currentTool.onMouseUp(x, y, animation[current]);
                 saved = false;
             }
         });
